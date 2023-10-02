@@ -4,6 +4,28 @@ import { useEffect } from 'react';
 import { Device } from '../interfaces/Device';
 import { format } from 'date-fns'
 
+
+function getStatus(device: Device) {
+    let status = "Offline";
+    // Check if device.last_seen is filled in and if it is less than 5 minutes ago
+    if (device.last_seen && new Date(device.last_seen) > new Date(Date.now() - 5 * 60000)) {
+        status = "Online";
+    } 
+    return status;
+}
+
+function formatDate(device: Device) {
+    let formattedDate = "";
+
+    // Format date
+    if (device.last_seen) {
+        const date = new Date(device.last_seen);
+        formattedDate = format(date, "dd-MM-yyyy HH:mm");
+    }
+    
+    return formattedDate;
+}
+
 function DevicesList() {
     const [devices, setDevices] = useState([] as Device[]);
 
@@ -46,19 +68,8 @@ function DevicesList() {
                         </thead>
                         <tbody>
                         {devices.map((device, index) => {
-                            let status = "Offline"; 
-                            let formattedDate = "";
-
-                            // Check if device.last_seen is filled in and if it is less than 5 minutes ago
-                            if (device.last_seen && new Date(device.last_seen) > new Date(Date.now() - 5 * 60000)) {
-                                status = "Online";
-                            } 
-
-                            // Format date
-                            if (device.last_seen) {
-                                const date = new Date(device.last_seen);
-                                formattedDate = format(date, "dd-MM-yyyy HH:mm");
-                            }
+                            const status = getStatus(device); 
+                            const lastSeen = formatDate(device);
 
                             return ( 
                                 <tr className="border-b dark:border-neutral-500 font-medium" key={device.id}>
@@ -68,7 +79,7 @@ function DevicesList() {
                                     <td className="whitespace-nowrap px-6 py-4">{device.mac_address}</td>
                                     <td className="whitespace-nowrap px-6 py-4">{device.led_count}</td>
                                     <td className="whitespace-nowrap px-6 py-4">{status}</td>
-                                    <td className="whitespace-nowrap px-6 py-4">{formattedDate}</td>
+                                    <td className="whitespace-nowrap px-6 py-4">{lastSeen}</td>
                                 </tr>
                             );
                         })}
@@ -81,7 +92,6 @@ function DevicesList() {
 }
 
 function Info() {
-
     function testMQTT() {
         axios.get('http://localhost:4000/testMQTT')
             .then((response) => {

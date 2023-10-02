@@ -1,70 +1,68 @@
-import { SketchPicker } from 'react-color';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+// Colors.tsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import AddColorForm from "../components/AddColorForm";
 
-function ColorPicker() {
-    const [colorState, setColorState] = useState({
-        displayColorPicker: false,
-        color: {
-            r: '128',
-            g: '128',
-            b: '128',
-            a: '1',
-        },
-    });
-    
-    const handleToggle = () => {
-        setColorState({...colorState, displayColorPicker: !colorState.displayColorPicker})
-    };
-
-    const handleClose = () => {
-        setColorState({...colorState, displayColorPicker: false})
-    };
-
-    const handleChange = (newColor: any) => {
-        setColorState({...colorState, color: newColor })
-    };
-
-    return (
-        <>
-            {colorState.displayColorPicker ? 
-                <div className="absolute z-10"><div className="fixed inset-0" onClick={handleClose}>
-                </div>
-                <SketchPicker color={colorState.color} onChange={handleChange} />
-                </div> : null}
-        </>
-    );
+interface Color {
+  id: number;
+  name: string;
+  color: string;
 }
 
+const Colors: React.FC = () => {
+  const [colors, setColors] = useState<Color[]>([]);
 
-function Colors() {
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL;
+    axios
+      .get(`${API_URL}/colors`)
+      .then((response) => {
+        setColors(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
 
-    // Make an api request to the /colors endpoint using axios
-    useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL;
-        axios.get(`${API_URL}/colors`)
-            .then((response) => {
-                console.log(response.data);
-            }
-            ).catch((error) => {
-                console.log(error);
-            }
-        );
-    }, []);
+  const handleAddColor = (name: string, color: string) => {
+    console.log(name, color);
+    const randomId = Math.floor(Math.random() * 1000);
+    const newColorObj: Color = {
+      id: randomId,
+      name: name,
+      color: color,
+    };
 
+    setColors([...colors, newColorObj]);
+  };
 
-    return (
-        <div className="sm:ml-48 text-primary-text">
-            <h2 className="text-4xl font-medium text-center pt-4">COLORS</h2>
-            <div className='w-full flex flex-col items-center'>
-                <p>Hello!</p>
+  const handleDeleteColor = (id: number) => {
+    const updatedColors = colors.filter((color) => color.id !== id);
+    setColors(updatedColors);
+  };
 
-                <div>
-                    <ColorPicker />
-                </div>
-            </div>
-        </div>
-    );
-}
+  return (
+    <div className="sm:ml-48 text-primary-text">
+      <h2 className="text-4xl font-medium text-center pt-4">COLORS</h2>
+      <div className="w-full flex flex-col items-center">
+        <AddColorForm onAddColor={handleAddColor} />
+        <ul>
+          {colors.map((color) => (
+            <li key={color.id}>
+              <div
+                style={{ backgroundColor: color.color }}
+                className="color-box"
+              ></div>
+              <span>{color.name}</span>
+              <button onClick={() => handleDeleteColor(color.id)}>
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
 
-export default Colors; 
+export default Colors;

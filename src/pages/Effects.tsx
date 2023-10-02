@@ -18,7 +18,7 @@ function EffectList() {
             }
         );
 
-        axios.get(`${API_URL}/devices/effects/info`)
+        axios.get(`${API_URL}/effects/info`)
             .then((response) => {
                 console.log(response.data);
             }

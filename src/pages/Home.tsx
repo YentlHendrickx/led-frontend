@@ -32,7 +32,7 @@ function Overview() {
 
     useEffect(() => {
         const API_URL = import.meta.env.VITE_API_URL; 
-        axios.get(`${API_URL}/devices/effects/info`)
+        axios.get(`${API_URL}/effects/info`)
             .then((response) => {
                 console.log(response.data);
                 setDeviceEffects(response.data);
