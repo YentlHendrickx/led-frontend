@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AddColorForm from "../components/AddColorForm";
+import { extractRGBA } from "../helpers";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Color {
   id: number;
@@ -13,27 +16,42 @@ const Colors: React.FC = () => {
   const [colors, setColors] = useState<Color[]>([]);
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL;
-    axios
-      .get(`${API_URL}/colors`)
-      .then((response) => {
-        setColors(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    fetchColors();
   }, []);
 
-  const handleAddColor = (name: string, color: string) => {
-    console.log(name, color);
-    const randomId = Math.floor(Math.random() * 1000);
-    const newColorObj: Color = {
-      id: randomId,
+  const fetchColors = async () => {
+    const response = await axios.get(`${API_URL}/colors`);
+
+    const displayColors: Color[] = [];
+
+    for (const color of response.data) {
+      const colorObj = {
+        id: color.id,
+        name: color.name,
+        color: `rgba(${color.rgba_value})`,
+      };
+
+      displayColors.push(colorObj);
+    }
+
+    setColors(displayColors);
+  };
+
+  const handleAddColor = async (name: string, color: string) => {
+    // Create rgba from hex
+    // const rgba = hexToRgba(color);
+    console.log(color);
+    const rgba = extractRGBA(color);
+
+    const newColorObj = {
       name: name,
-      color: color,
+      rgba: `${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]}`,
     };
 
-    setColors([...colors, newColorObj]);
+    const result = await axios.post(`${API_URL}/colors`, newColorObj);
+    console.log(result);
+
+    await fetchColors();
   };
 
   const handleDeleteColor = (id: number) => {
@@ -48,13 +66,19 @@ const Colors: React.FC = () => {
         <AddColorForm onAddColor={handleAddColor} />
         <ul>
           {colors.map((color) => (
-            <li key={color.id}>
+            <li
+              className="w-full py-2 flex flex-row gap-x-2 items-center justify-between"
+              key={color.id}
+            >
               <div
                 style={{ backgroundColor: color.color }}
-                className="color-box"
+                className="w-8 h-4 rounded-md"
               ></div>
-              <span>{color.name}</span>
-              <button onClick={() => handleDeleteColor(color.id)}>
+              <span className="text-left">{color.name}</span>
+              <button
+                className="bg-red-500 hover:bg-red-700 text-white font-bold p-1 rounded"
+                onClick={() => handleDeleteColor(color.id)}
+              >
                 Delete
               </button>
             </li>

@@ -1,6 +1,7 @@
 // ColorPicker.tsx
-import React, { useState } from "react";
+import React from "react";
 import { SketchPicker } from "react-color";
+import type { ColorResult } from "react-color";
 
 interface ColorPickerProps {
   onColorChange: (color: string) => void;
@@ -15,7 +16,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   onClose,
   color,
 }) => {
-  const handleChange = (newColor: any) => {
+  const handleChange = (newColor: ColorResult) => {
     const colorHex = `rgba(${newColor.rgb.r},${newColor.rgb.g},${newColor.rgb.b},${newColor.rgb.a})`;
     onColorChange(colorHex);
   };
