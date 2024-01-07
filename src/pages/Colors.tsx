@@ -38,9 +38,6 @@ const Colors: React.FC = () => {
   };
 
   const handleAddColor = async (name: string, color: string) => {
-    // Create rgba from hex
-    // const rgba = hexToRgba(color);
-    console.log(color);
     const rgba = extractRGBA(color);
 
     const newColorObj = {
@@ -54,8 +51,15 @@ const Colors: React.FC = () => {
     await fetchColors();
   };
 
-  const handleDeleteColor = (id: number) => {
+  const handleDeleteColor = async (id: number) => {
+    const confirm = window.confirm("Are you sure you want to delete this?");
+    if (!confirm) {
+      return;
+    }
+
     const updatedColors = colors.filter((color) => color.id !== id);
+    const response = await axios.delete(`${API_URL}/colors/${id}`);
+    console.log(response);
     setColors(updatedColors);
   };
 
@@ -64,19 +68,19 @@ const Colors: React.FC = () => {
       <h2 className="text-4xl font-medium text-center pt-4">COLORS</h2>
       <div className="w-full flex flex-col items-center">
         <AddColorForm onAddColor={handleAddColor} />
-        <ul>
+        <ul className="w-5/6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4">
           {colors.map((color) => (
             <li
-              className="w-full py-2 flex flex-row gap-x-2 items-center justify-between"
+              className="w-full py-2 grid grid-cols-12 gap-x-2 items-center justify-between"
               key={color.id}
             >
               <div
                 style={{ backgroundColor: color.color }}
-                className="w-8 h-4 rounded-md"
+                className="col-span-4 h-full rounded-md"
               ></div>
-              <span className="text-left">{color.name}</span>
+              <span className="text-left col-span-4">{color.name}</span>
               <button
-                className="bg-red-500 hover:bg-red-700 text-white font-bold p-1 rounded"
+                className="col-span-4 bg-red-500 hover:bg-red-700 text-white font-bold p-[0.125rem] rounded"
                 onClick={() => handleDeleteColor(color.id)}
               >
                 Delete

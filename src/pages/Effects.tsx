@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
-import { Effect } from "../interfaces/Effects";
 import { DeviceEffect } from "../interfaces/DeviceEffect";
+import AddEffectForm from "../components/AddEffectForm";
+import { Effect } from "../interfaces/Effects";
+import { useState, useEffect } from "react";
 import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL; 
 
 function EffectList() {
     const [effects, setEffects] = useState([] as Effect[]);
     const [deviceEffects, setDeviceEffects] = useState([] as DeviceEffect[]);
 
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL; 
         axios.get(`${API_URL}/effects`)
             .then((response) => {
                 setEffects(response.data);
@@ -46,6 +48,7 @@ function Effects() {
     return (
         <div className="sm:ml-48 text-primary-text">
             <h2 className="text-4xl font-medium text-center pt-4">EFFECTS</h2>
+            <AddEffectForm onAddEffect={() => {}} />
             <EffectList />
         </div>
     );
