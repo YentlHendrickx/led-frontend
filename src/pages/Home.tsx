@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { DeviceEffect } from "../interfaces/DeviceEffect";
-import axios from "axios";
+import useDeviceEffectStore from "../store/store";
 import { EffectList } from "./Effects";
-
-// Export a useState hook
 
 function ModeSwitcher() {
     function handleGroupChange(e: React.ChangeEvent<HTMLFormElement>) {
@@ -56,31 +54,20 @@ function ModeSwitcher() {
 }
 
 function Overview() {
-    const [deviceEffects, setDeviceEffects] = useState([] as DeviceEffect[]);
+    const { deviceEffects, fetchDeviceEffects } = useDeviceEffectStore();
+
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL;
+        fetchDeviceEffects();
 
-        // Do every 5 seconds (Realistically, this should be a websocket connection but I'm lazy)
+        // Update every 5 seconds
         const interval = setInterval(() => {
-            axios
-                .get(`${API_URL}/effects/info`)
-                .then((response) => {
-                    console.log(response.data);
-                    setDeviceEffects(response.data);
-
-                    // Store in localstroage
-                    localStorage.setItem(
-                        "deviceEffects",
-                        JSON.stringify(response.data)
-                    );
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
+            fetchDeviceEffects();
         }, 5000);
 
-        return () => clearInterval(interval);
-    }, []);
+        return () => {
+            clearInterval(interval);
+        };
+    }, [fetchDeviceEffects]);
 
     return (
         <div className="flex flex-col justify-center overflow-x-auto">
@@ -133,45 +120,40 @@ function Overview() {
     );
 }
 
-function changeEffect(effectId: string) {
-    const API_URL = import.meta.env.VITE_API_URL;
-    console.log("REQUESTING EFFECT CHANGE TO:", effectId);
-
-    // Get the device effects from localstorage
-    const deviceEffects = JSON.parse(
-        localStorage.getItem("deviceEffects") || "[]"
-    );
-
-    deviceEffects.forEach((deviceEffect: DeviceEffect) => {
-        deviceEffect.effect_id = parseInt(effectId);
-
-        // TODO: Add state management library to handle this, it's kinda yikes
-        axios
-            .post(
-                `${API_URL}/device_effects/${deviceEffect.device_effect_id}`,
-                {
-                    effect_id: deviceEffect.effect_id,
-                    device_id: deviceEffect.device_id,
-                    color_id: deviceEffect.color_id,
-                }
-            )
-            .then((response) => {
-                console.log(response.data);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    });
-}
-
 function Home() {
+    const { deviceEffects } = useDeviceEffectStore();
+    const [selectedEffectId, setSelectedEffectId] = useState("");
+
+    useEffect(() => {
+        if (deviceEffects.length > 0) {
+            setSelectedEffectId(deviceEffects[0].effect_id.toString());
+        }
+    }, [deviceEffects]);
+
+    async function changeEffect(effectId: string) {
+        console.log("REQUESTING EFFECT CHANGE TO:", effectId);
+
+        const { deviceEffects, changeEffectById } =
+            useDeviceEffectStore.getState();
+
+        setSelectedEffectId(effectId);
+
+        deviceEffects.forEach(async (deviceEffect: DeviceEffect) => {
+            deviceEffect.effect_id = parseInt(effectId);
+            await changeEffectById(deviceEffect);
+        });
+    }
+
     return (
         <div className="sm:ml-48 text-primary-text">
-            <h2 className="text-4xl font-medium text-center pt-4">
+            <h2 className="text-4xl font-medium text-center pt-4 mb-12">
                 LED CONTROLLER
             </h2>
-            <ModeSwitcher />
-            <EffectList changeEffect={changeEffect} />
+            {/* <ModeSwitcher /> */}
+            <EffectList
+                changeEffect={changeEffect}
+                selectedEffectId={selectedEffectId}
+            />
             <Overview />
         </div>
     );

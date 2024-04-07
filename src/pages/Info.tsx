@@ -33,8 +33,6 @@ function formatDate(device: Device) {
 
 function DevicesList() {
     const [devices, setDevices] = useState([] as Device[]);
-    const [status, setStatus] = useState("Offline");
-    const [lastSeen, setLastSeen] = useState("");
 
     useEffect(() => {
         function getDevices() {
@@ -42,9 +40,14 @@ function DevicesList() {
                 .get(import.meta.env.VITE_API_URL + "/devices")
                 .then((response) => {
                     // TODO: Some error handling here
+                    //
+                    const devices = response.data;
+                    devices.forEach((device: Device) => {
+                        device.status = getStatus(device);
+                        device.last_seen = formatDate(device);
+                    });
+
                     setDevices(response.data);
-                    setStatus(getStatus(response.data[0]));
-                    setLastSeen(formatDate(response.data[0]));
                 })
                 .catch((error) => {
                     console.log(error);
@@ -115,10 +118,10 @@ function DevicesList() {
                                             {device.led_count}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4">
-                                            {status}
+                                            {device.status}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4">
-                                            {lastSeen}
+                                            {device.last_seen}
                                         </td>
                                     </tr>
                                 );

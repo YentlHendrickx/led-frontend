@@ -6,6 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 interface EffectListProps {
     changeEffect: (effectId: string) => void;
+    selectedEffectId?: string;
 }
 
 export const EffectList = (props: EffectListProps) => {
@@ -29,6 +30,7 @@ export const EffectList = (props: EffectListProps) => {
             <select
                 className="rounded-lg px-4 py-2 mt-2 mb-2 text-primary-text bg-primary border border-accent"
                 onChange={(event) => props.changeEffect(event.target.value)}
+                value={props.selectedEffectId}
             >
                 {effects.map((effect) => {
                     return (
